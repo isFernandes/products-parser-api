@@ -1,0 +1,35 @@
+{
+  "name": "products-parser-api",
+  "version": "1.0.0",
+  "description": "Nesse desafio trabalharemos no desenvolvimento de uma REST API para utilizar os dados do projeto Open Food Facts, que é um banco de dados aberto com informação nutricional de diversos produtos alimentícios.",
+  "main": "src/server.ts",
+  "type": "module",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node --watch --import=tsx src/server.ts",
+    "build": "tsc",
+    "start": "node --import=tsx src/server.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "mongodb": "6.10",
+    "node-cron": "^3.0.3",
+    "reflect-metadata": "^0.2.2",
+    "routing-controllers": "^0.10.4",
+    "typedi": "^0.10.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.8.6",
+    "@types/node-cron": "^3.0.11",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
