@@ -89,7 +89,7 @@ export class ImportService {
       transform(chunk, _, callback) {
         const productData = JSON.parse(chunk.toString());
         const sanitizedProduct = {
-          code: productData.code,
+          code: productData.code.replace(/\D/g, "").toString(),
           url: productData.url,
           creator: productData.creator,
           created_t: productData.created_t,
