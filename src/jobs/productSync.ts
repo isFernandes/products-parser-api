@@ -5,7 +5,7 @@ import { emitEventStream } from "../events/import.events";
 
 const importService = Container.get<ImportService>("importService");
 
-export const productSync = schedule("0 */2 * * * *", async () => {
+export const productSync = schedule("0 0 2 * * *", async () => {
   await importService.importData().catch((error) => {
     emitEventStream.emit("import:error", error);
   });
