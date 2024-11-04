@@ -77,6 +77,7 @@ describe("ImportHistoryRepository", () => {
         date: new Date("2023-01-01"),
         quantity: 100,
         source: "testSource.json",
+        offset: 0,
       };
 
       const mockInsertResult: InsertOneResult<IImportHistory> = {

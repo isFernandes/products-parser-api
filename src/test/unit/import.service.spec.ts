@@ -1,5 +1,5 @@
-import { ImportService, ProductService } from "../../services";
-import { ImportHistoryRepository } from "../../repositories";
+import { ImportService } from "../../services";
+import { ImportHistoryRepository, ProductRepository } from "../../repositories";
 
 jest.mock("../../repositories");
 
@@ -16,15 +16,16 @@ jest.mock("node:zlib", () => ({
 describe("ImportService", () => {
   let importService: ImportService;
   let mockImportHistoryRepository: jest.Mocked<ImportHistoryRepository>;
-  let mockProductService: jest.Mocked<ProductService>;
+  let mockProductRepository: jest.Mocked<ProductRepository>;
 
   beforeEach(() => {
     mockImportHistoryRepository =
       new ImportHistoryRepository() as jest.Mocked<ImportHistoryRepository>;
-    mockProductService = new ProductService() as jest.Mocked<ProductService>;
+    mockProductRepository =
+      new ProductRepository() as jest.Mocked<ProductRepository>;
     importService = new ImportService();
     importService["importRepository"] = mockImportHistoryRepository;
-    importService["productService"] = mockProductService;
+    importService["productRepository"] = mockProductRepository;
   });
 
   describe("importData", () => {
