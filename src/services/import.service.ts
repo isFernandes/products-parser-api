@@ -131,7 +131,7 @@ export class ImportService {
           buffer = buffer.slice(lineManager + 1);
 
           try {
-            this.push({ extractedProduct });
+            this.push(extractedProduct);
             productsCount++;
           } catch (error) {
             console.error("Erro ao processar JSON:", error);
