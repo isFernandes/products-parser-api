@@ -63,8 +63,8 @@ export class ProductController {
 
   @Get("/")
   async getAll(
-    @QueryParam("page") page: number,
-    @QueryParam("limit") limit: number,
+    @QueryParam("page") page: number = 1,
+    @QueryParam("limit") limit: number = 1,
     @Res() res: Response
   ) {
     const data = await this.service.findAll({
@@ -77,7 +77,7 @@ export class ProductController {
       message: "Products founded",
       page,
       limit,
-      data,
+      data: { code: data[0].code.replace(/\D/g, "").toString() },
     };
   }
 }
