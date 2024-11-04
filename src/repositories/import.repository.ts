@@ -29,6 +29,20 @@ export class ImportHistoryRepository {
     return result[0].date;
   }
 
+  async getLastOffset(filename: string) {
+    const db = await this.mongoClient.connectToDatabase();
+    const result = await db
+      .collection<IImportHistory>(this.COLLECTION_NAME)
+      .findOne(
+        { source: filename },
+        {
+          sort: { date: -1 },
+        }
+      );
+
+    return result?.offset;
+  }
+
   async save(importData: IImportHistory) {
     const db = await this.mongoClient.connectToDatabase();
     const result = await db

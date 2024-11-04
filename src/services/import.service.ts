@@ -1,19 +1,19 @@
 import { Inject, Service } from "typedi";
 import { Readable, Transform } from "node:stream";
-import { createUnzip } from "node:zlib";
+import { createUnzip, constants } from "node:zlib";
 
 import { IProduct, IProductStatus } from "../interfaces/product.interface";
-import { ImportHistoryRepository } from "../repositories";
+import { ImportHistoryRepository, ProductRepository } from "../repositories";
 import { HttpError } from "routing-controllers";
-import { ProductService } from "./products.service";
+import { emitEventStream } from "../events/import.events";
 
 @Service("importService")
 export class ImportService {
   @Inject("importHistoryRepository")
   private importRepository!: ImportHistoryRepository;
 
-  @Inject("productService")
-  private productService!: ProductService;
+  @Inject("productRepository")
+  private productRepository!: ProductRepository;
 
   private async getFilenames() {
     const filenames: string[] = [];
@@ -21,6 +21,8 @@ export class ImportService {
     const returnedData = await this.callApi(
       "https://challenges.coode.sh/food/data/json/index.txt"
     );
+
+    console.log(returnedData.values({ preventCancel: true }));
     const dataToStream = Readable.fromWeb(returnedData);
 
     await this.resolveStreamFilename(dataToStream, filenames);
@@ -43,8 +45,12 @@ export class ImportService {
   private async resolveStreamFilename(stream: Readable, filenames: string[]) {
     await new Promise<void>((resolve) => {
       stream.on("data", (data) => {
-        const sanitizedData = this.sanitizeData(data.toString());
-        filenames.push(...sanitizedData);
+        filenames.push(
+          ...data
+            .toString()
+            .split("\n")
+            .filter((el: string) => el.length > 1)
+        );
       });
 
       stream.on("end", () => {
@@ -57,12 +63,23 @@ export class ImportService {
     return data.split("\n").filter((el: string) => el.length > 1);
   }
 
+  private async getOffset(filename: string) {
+    try {
+      const offset = await this.importRepository.getLastOffset(filename);
+      return offset || 0;
+    } catch (error) {
+      throw new Error(JSON.stringify(error));
+    }
+  }
+
   async importData() {
     try {
       const names = await this.getFilenames();
 
+      console.log(names);
+
       for await (const name of names) {
-        await this.processData(name);
+        if (name.length === 19) await this.processData(name);
       }
     } catch (error) {
       console.error(error);
@@ -100,7 +117,11 @@ export class ImportService {
           status: IProductStatus.DRAFT,
         };
 
-        this.emit("data", sanitizedProduct);
+        this.emit("data", {
+          payload: sanitizedProduct,
+          productCount: productData.count,
+          newOffset: productData.newOffset,
+        });
 
         callback();
       },
@@ -109,6 +130,7 @@ export class ImportService {
 
   private extractProductLine() {
     let buffer = "";
+    let bufferSize = 0;
     let productsCount = 0;
     const MAX_PRODUCTS = Number(process.env.MAX_PRODUCTS_EXTRACT) || 100;
 
@@ -127,14 +149,23 @@ export class ImportService {
           (lineManager = buffer.indexOf("\n")) >= 0 &&
           productsCount < MAX_PRODUCTS
         ) {
-          const extractedProduct = buffer.slice(0, lineManager);
-          buffer = buffer.slice(lineManager + 1);
-
           try {
-            this.push(extractedProduct);
+            const extractedProduct = buffer.slice(0, lineManager);
+            buffer = buffer.slice(lineManager + 1);
+
+            bufferSize +=
+              Buffer.byteLength(extractedProduct.toString(), "utf8") + 1;
+            const transformedProduct = JSON.parse(extractedProduct.toString());
+            this.push(
+              JSON.stringify({
+                ...transformedProduct,
+                count: productsCount,
+                newOffset: bufferSize,
+              })
+            );
             productsCount++;
           } catch (error) {
-            console.error("Erro ao processar JSON:", error);
+            emitEventStream.emit("import:error", error);
           }
         }
         callback();
@@ -150,30 +181,65 @@ export class ImportService {
     }
   }
 
+  private limitOffset(fileOffset: number) {
+    return new Transform({
+      transform(chunk, _, callback) {
+        const buffer = Buffer.from(chunk);
+
+        if (fileOffset > 0) {
+          if (buffer.length <= fileOffset) {
+            fileOffset -= buffer.length;
+            return callback();
+          } else {
+            const start = fileOffset;
+            const end = buffer.length;
+
+            fileOffset = 0;
+
+            this.push(buffer.subarray(start, end));
+          }
+        } else {
+          this.push(buffer);
+        }
+        callback();
+      },
+    });
+  }
+
   private async processData(filename: string) {
     const returnedData = await this.callApi(
       `https://challenges.coode.sh/food/data/json/${filename}`
     );
+
+    let fileOffset: number = await this.getOffset(filename);
 
     const dataToStream = Readable.fromWeb(returnedData);
 
     const products: IProduct[] = [];
 
     dataToStream
-      .pipe(createUnzip())
+      .pipe(createUnzip({ finishFlush: constants.Z_SYNC_FLUSH }))
+      .pipe(this.limitOffset(fileOffset))
       .pipe(this.extractProductLine())
       .pipe(this.parseProductObject())
-      .on("data", async (data) => {
-        products.push(data);
+      .on("data", async ({ payload, newOffset }) => {
+        products.push(payload);
+        fileOffset = newOffset > fileOffset ? newOffset : fileOffset;
       })
       .on("finish", async () => {
         await this.importRepository.save({
           quantity: products.length,
           date: new Date(),
           source: filename,
+          offset: fileOffset,
         });
 
-        await this.productService.saveMany(products);
+        if (products.length < 100) {
+          console.log(filename, products.length);
+        }
+
+        if (products.length > 0)
+          await this.productRepository.saveMany(products);
       });
 
     return dataToStream;
