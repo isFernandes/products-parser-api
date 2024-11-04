@@ -1,6 +1,7 @@
-import { MongoClient } from "mongodb";
+import { Db, Document, MongoClient } from "mongodb";
 
 export interface IDatabase {
-  // connect: (db_name: string) => Promise<MongoClient | undefined>;
+  connectToDatabase: () => Promise<Db>;
+  checkDBConnection: () => Promise<Document>;
   disconnect: () => void;
 }

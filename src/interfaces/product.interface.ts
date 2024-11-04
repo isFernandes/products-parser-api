@@ -1,3 +1,5 @@
+import { ObjectId } from "mongodb";
+
 enum IProductStatus {
   DRAFT = "draft",
   TRASH = "trash",
@@ -5,6 +7,7 @@ enum IProductStatus {
 }
 
 type IProduct = {
+  _id?: ObjectId;
   code: string;
   status: IProductStatus;
   imported_t: Date;
