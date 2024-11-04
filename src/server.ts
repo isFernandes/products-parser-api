@@ -1,22 +1,8 @@
-import "reflect-metadata";
-import "dotenv/config";
-import { createExpressServer, useContainer } from "routing-controllers";
-import { Container } from "typedi";
+import { app as server } from "./app";
 
-import "./database";
-import "./services";
-import "./repositories";
-import { productSync } from "./jobs/productSync";
-import { ProductController, HealthyController } from "./controllers";
+const PORT = process.env.PORT || 3333;
 
-useContainer(Container);
-
-const server = createExpressServer({
-  controllers: [ProductController, HealthyController],
-});
-
-productSync;
-
-server.listen(process.env.PORT, () => {
-  console.log(`Server is running on port ${process.env.PORT}`);
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+  console.log(`Swagger docs available at http://localhost:${PORT}/api-docs`);
 });
