@@ -5,14 +5,12 @@ import {
   Put,
   Param,
   Body,
-  QueryParams,
   Res,
-  HttpCode,
+  QueryParam,
 } from "routing-controllers";
 import { Inject, Service } from "typedi";
 import { ProductService } from "../services";
 import { IProduct } from "../interfaces/product.interface";
-import { STATUS_CODES } from "http";
 
 @JsonController("/products")
 @Service()
@@ -33,7 +31,7 @@ export class ProductController {
     const updatedProduct = await this.service.updateByCode(code, product);
 
     return {
-      statusCode: HttpCode(res.status),
+      statusCode: 200,
       message: "Product updated",
       data: updatedProduct,
     };
@@ -48,7 +46,7 @@ export class ProductController {
     await this.service.deleteByCode(code);
 
     return {
-      statusCode: HttpCode(res.status),
+      statusCode: 200,
       message: "Product deleted",
     };
   }
@@ -57,23 +55,28 @@ export class ProductController {
   async getOneByCode(@Param("code") code: string, @Res() res: Response) {
     const product = await this.service.findByCode(code);
     return {
-      statusCode: HttpCode(res.status),
+      statusCode: 200,
       message: "Product founded",
       data: product,
     };
   }
 
   @Get("/")
-  async getRole(
-    @QueryParams() filter: { page: number; limit: number },
+  async getAll(
+    @QueryParam("page") page: number,
+    @QueryParam("limit") limit: number,
     @Res() res: Response
   ) {
-    const data = await this.service.findAll(filter);
+    const data = await this.service.findAll({
+      page: Number(page),
+      limit: Number(limit),
+    });
 
     return {
-      statusCode: HttpCode(res.status),
+      statusCode: 200,
       message: "Products founded",
-      ...filter,
+      page,
+      limit,
       data,
     };
   }

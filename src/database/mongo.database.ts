@@ -46,17 +46,15 @@ export class MongoDatabase implements IDatabase {
     }
   }
 
-  private async checkDBConnection(db_name = process.env.DB_NAME) {
+  async checkDBConnection(db_name = process.env.DB_NAME) {
     try {
-      const database = await this.getDatabase(db_name);
+      const db = await this.getDatabase(db_name);
 
-      await database.command({ ping: 1 }).then(() => {
-        process.stdout.write(
-          `${db_name} pinged. You successfully connected to MongoDB!`
-        );
-      });
+      const result = await db.command({ ping: 1, serverStatus: 1 });
+
+      return result;
     } catch (error) {
-      process.stderr.write(
+      console.error(
         `We got that error when try check database: ${JSON.stringify(error)}`
       );
       await this.client.close();
@@ -81,8 +79,6 @@ export class MongoDatabase implements IDatabase {
   async connectToDatabase() {
     try {
       await this.connect();
-
-      // await this.checkDBConnection();
 
       return await this.getDatabase();
     } catch (error) {

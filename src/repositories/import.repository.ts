@@ -1,5 +1,3 @@
-// src/repositories/ProductRepository.ts
-
 import { Inject, Service } from "typedi";
 import { MongoDatabase } from "../database";
 import { IImportHistory } from "../interfaces/import.interface";
@@ -15,25 +13,34 @@ export class ImportHistoryRepository {
     await client.disconnect();
   }
 
-  async findAll() {
+  async getLastUpdate() {
     const db = await this.mongoClient.connectToDatabase();
     const result = await db
       .collection<IImportHistory>(this.COLLECTION_NAME)
-      .find()
+      .find(
+        {},
+        {
+          sort: { date: -1 },
+          limit: 1,
+        }
+      )
       .toArray();
 
-    console.log(result);
-
-    return result;
+    return result[0].date;
   }
 
-  async findByCode(code: number): Promise<IImportHistory | null> {
+  async getLastOffset(filename: string) {
     const db = await this.mongoClient.connectToDatabase();
     const result = await db
       .collection<IImportHistory>(this.COLLECTION_NAME)
-      .findOne({ code });
+      .findOne(
+        { source: filename },
+        {
+          sort: { date: -1 },
+        }
+      );
 
-    return result;
+    return result?.offset;
   }
 
   async save(importData: IImportHistory) {
@@ -45,29 +52,5 @@ export class ImportHistoryRepository {
       });
 
     return result;
-  }
-
-  async updateByCode(
-    code: number,
-    updateData: Partial<IImportHistory>
-  ): Promise<IImportHistory | null> {
-    const db = await this.mongoClient.connectToDatabase();
-    const result = await db
-      .collection<IImportHistory>(this.COLLECTION_NAME)
-      .findOneAndUpdate(
-        { code },
-        { $set: updateData },
-        { returnDocument: "after" }
-      );
-
-    return result;
-  }
-
-  async deleteByCode(code: number): Promise<void> {
-    const db = await this.mongoClient.connectToDatabase();
-
-    await db
-      .collection<IImportHistory>(this.COLLECTION_NAME)
-      .deleteOne({ code });
   }
 }
