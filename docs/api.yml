@@ -1,6 +1,296 @@
 openapi: 3.0.1
 info:
-  title: DotNet Challenge 20200902
-  description: CRUD Products
-  version: '0.1'
+  title: Node Challenge 20200902
+  description: API REST Open Food
+  version: '1.0.0'
+servers:
+  - url: http://localhost:3333
+    description: Servidor local
 
+
+paths:
+  /:
+    get:
+      summary: Obter status de saúde da API
+      description: Retorna detalhes sobre o status da API, incluindo conexão com o banco de dados, última importação, uso de memória e tempo online.
+      operationId: getHealthStatus
+      responses:
+        '200':
+          description: Status de saúde da API
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dbData:
+                    type: object
+                    properties:
+                      ok:
+                        type: boolean
+                  lastImport:
+                    type: string
+                    format: date-time
+                  memoryUsage:
+                    type: object
+                  uptime:
+                    type: number
+
+  /products:
+    get:
+      summary: Listar todos os produtos
+      description: Retorna uma lista paginada de produtos.
+      operationId: getAllProducts
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Número da página
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Número de itens por página
+      responses:
+        '200':
+          description: Lista de produtos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  message:
+                    type: string
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+
+  /products/{code}:
+    get:
+      summary: Obter um produto pelo código
+      description: Retorna os detalhes de um produto específico.
+      operationId: getProductByCode
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detalhes do produto
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '404':
+          description: Produto não encontrado
+
+    put:
+      summary: Atualizar um produto
+      description: Atualiza os detalhes de um produto existente.
+      operationId: updateProduct
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdate'
+      responses:
+        '200':
+          description: Produto atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '404':
+          description: Produto não encontrado
+
+    delete:
+      summary: Excluir um produto
+      description: Remove um produto do sistema.
+      operationId: deleteProduct
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Produto excluído
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  message:
+                    type: string
+        '404':
+          description: Produto não encontrado
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: objectId
+        code:
+          type: string
+        status:
+          type: string
+          enum: [draft, trash, published]
+        imported_t:
+          type: string
+          format: date-time
+        url:
+          type: string
+        creator:
+          type: string
+        created_t:
+          type: integer
+        last_modified_t:
+          type: integer
+        product_name:
+          type: string
+        quantity:
+          type: string
+        brands:
+          type: string
+        categories:
+          type: string
+        labels:
+          type: string
+        cities:
+          type: string
+        purchase_places:
+          type: string
+        stores:
+          type: string
+        ingredients_text:
+          type: string
+        traces:
+          type: string
+        serving_size:
+          type: string
+        serving_quantity:
+          type: number
+        nutriscore_score:
+          type: number
+        nutriscore_grade:
+          type: string
+        main_category:
+          type: string
+        image_url:
+          type: string
+
+    ProductUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [draft, trash, published]
+        product_name:
+          type: string
+        quantity:
+          type: string
+        brands:
+          type: string
+        categories:
+          type: string
+        labels:
+          type: string
+        cities:
+          type: string
+        purchase_places:
+          type: string
+        stores:
+          type: string
+        ingredients_text:
+          type: string
+        traces:
+          type: string
+        serving_size:
+          type: string
+        serving_quantity:
+          type: number
+        nutriscore_score:
+          type: number
+        nutriscore_grade:
+          type: string
+        main_category:
+          type: string
+        image_url:
+          type: string
+
+    ImportHistory:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: objectId
+        quantity:
+          type: integer
+        date:
+          type: string
+          format: date-time
+        source:
+          type: string
+        offset:
+          type: integer
+
+    HealthStatus:
+      type: object
+      properties:
+        dbData:
+          type: object
+          properties:
+            ok:
+              type: boolean
+        lastImport:
+          type: string
+          format: date-time
+        memoryUsage:
+          type: object
+          properties:
+            rss:
+              type: number
+            heapTotal:
+              type: number
+            heapUsed:
+              type: number
+            external:
+              type: number
+        uptime:
+          type: number
