@@ -22,7 +22,6 @@ export class ImportService {
       "https://challenges.coode.sh/food/data/json/index.txt"
     );
 
-    console.log(returnedData.values({ preventCancel: true }));
     const dataToStream = Readable.fromWeb(returnedData);
 
     await this.resolveStreamFilename(dataToStream, filenames);
@@ -75,8 +74,6 @@ export class ImportService {
   async importData() {
     try {
       const names = await this.getFilenames();
-
-      console.log(names);
 
       for await (const name of names) {
         if (name.length === 19) await this.processData(name);
@@ -233,10 +230,6 @@ export class ImportService {
           source: filename,
           offset: fileOffset,
         });
-
-        if (products.length < 100) {
-          console.log(filename, products.length);
-        }
 
         if (products.length > 0)
           await this.productRepository.saveMany(products);
