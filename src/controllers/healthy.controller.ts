@@ -1,19 +1,32 @@
 import { JsonController, Get } from "routing-controllers";
 import { Inject, Service } from "typedi";
-import { ImportService } from "../services";
+import { HealthyService } from "../services";
 
 // - `GET /`: Detalhes da API, se conexão leitura e escritura com a base de dados está OK, horário da última vez que o CRON foi executado, tempo online e uso de memória.
 
 @JsonController("/")
 @Service()
 export class HealthyController {
-  @Inject("importService")
-  private importService!: ImportService;
+  @Inject("healthyService")
+  private healthyService!: HealthyService;
 
   @Get()
-  async healthy() {
-    const filename = await this.importService.importData();
+  async getHealthStatus() {
+    const { ok } = await this.healthyService.getDatabaseHealth();
 
-    return { filename };
+    const lastImport = await this.healthyService.getLastImport();
+
+    const memoryUsage = this.healthyService.getMemoryUsage();
+
+    const uptime = this.healthyService.getUptime();
+
+    const response = {
+      dbData: { ok: !!ok },
+      lastImport,
+      memoryUsage,
+      uptime,
+    };
+
+    return response;
   }
 }
