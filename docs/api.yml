@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  title: Node Challenge 20200902
+  title: Node Challenge - Products Parser
   description: API REST Open Food
   version: '1.0.0'
 servers:
