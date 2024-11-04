@@ -26,7 +26,7 @@ export class ImportHistoryRepository {
       )
       .toArray();
 
-    return result[0].date;
+    return result;
   }
 
   async getLastOffset(filename: string) {

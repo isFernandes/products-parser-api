@@ -63,8 +63,8 @@ export class ProductController {
 
   @Get("/")
   async getAll(
-    @QueryParam("page") page: number,
-    @QueryParam("limit") limit: number,
+    @QueryParam("page") page: number = 1,
+    @QueryParam("limit") limit: number = 10,
     @Res() res: Response
   ) {
     const data = await this.service.findAll({

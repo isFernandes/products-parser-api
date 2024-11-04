@@ -20,8 +20,13 @@ export class HealthyService {
 
   async getLastImport() {
     try {
-      return await this.importRepository.getLastUpdate();
+      const result = await this.importRepository.getLastUpdate();
+
+      if (result[0]) return result[0].date;
+
+      return "Dont have imported data";
     } catch (error) {
+      console.log(error);
       throw new HttpError(500, JSON.stringify(error));
     }
   }
