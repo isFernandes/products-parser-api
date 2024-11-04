@@ -1,5 +1,3 @@
-// src/repositories/ProductRepository.ts
-
 import { Inject, Service } from "typedi";
 import { MongoDatabase } from "../database";
 import { IProduct, IProductStatus } from "../interfaces/product.interface";

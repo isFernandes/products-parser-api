@@ -3,16 +3,17 @@ import { Readable, Transform } from "node:stream";
 import { createUnzip } from "node:zlib";
 
 import { IProduct, IProductStatus } from "../interfaces/product.interface";
-import { ImportHistoryRepository, ProductRepository } from "../repositories";
+import { ImportHistoryRepository } from "../repositories";
 import { HttpError } from "routing-controllers";
+import { ProductService } from "./products.service";
 
 @Service("importService")
 export class ImportService {
   @Inject("importHistoryRepository")
   private importRepository!: ImportHistoryRepository;
 
-  @Inject("productRepository")
-  private productRepo!: ProductRepository;
+  @Inject("productService")
+  private productService!: ProductService;
 
   private async getFilenames() {
     const filenames: string[] = [];
@@ -130,7 +131,7 @@ export class ImportService {
           buffer = buffer.slice(lineManager + 1);
 
           try {
-            this.push(extractedProduct);
+            this.push({ extractedProduct });
             productsCount++;
           } catch (error) {
             console.error("Erro ao processar JSON:", error);
@@ -139,6 +140,14 @@ export class ImportService {
         callback();
       },
     });
+  }
+
+  async getLastImport() {
+    try {
+      return await this.importRepository.getLastUpdate();
+    } catch (error) {
+      throw new HttpError(500, error as string);
+    }
   }
 
   private async processData(filename: string) {
@@ -164,7 +173,7 @@ export class ImportService {
           source: filename,
         });
 
-        await this.productRepo.saveMany(products);
+        await this.productService.saveMany(products);
       });
 
     return dataToStream;
