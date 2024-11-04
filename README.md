@@ -16,7 +16,7 @@ Nesse desafio foi desnvolvida uma REST API, com o objetivo de utilizar os dados 
 
 ## Instação do projeto:
 
-- Clone o projeto: `git clone https://github.com/isFernandes/products-parser-api
+- Clone o projeto: `git clone https://github.com/isFernandes/products-parser-api`
 
 ### Para rodar localmente (Sem docker):
 
