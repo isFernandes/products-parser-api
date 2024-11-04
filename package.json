@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Nesse desafio trabalharemos no desenvolvimento de uma REST API para utilizar os dados do projeto Open Food Facts, que é um banco de dados aberto com informação nutricional de diversos produtos alimentícios.",
   "main": "src/server.ts",
-  "type": "module",
   "directories": {
     "doc": "docs"
   },
@@ -11,7 +10,7 @@
     "test": "jest --passWithNoTests",
     "dev": "node --watch --import=tsx src/server.ts",
     "build": "tsc",
-    "start": "node --import=tsx src/server.ts"
+    "start": "node  dist/server.js"
   },
   "keywords": [],
   "author": "",
