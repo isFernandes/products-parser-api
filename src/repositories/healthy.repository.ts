@@ -6,7 +6,7 @@ export class HealthyRepository {
   @Inject("mongoDatabase")
   private mongoClient!: MongoDatabase;
 
-  async disconnectDatabase(client: MongoDatabase) {
+  private async disconnectDatabase(client: MongoDatabase) {
     await client.disconnect();
   }
 

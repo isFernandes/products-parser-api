@@ -9,10 +9,6 @@ export class ImportHistoryRepository {
 
   private COLLECTION_NAME = "importHistory";
 
-  async disconnectDatabase(client: MongoDatabase) {
-    await client.disconnect();
-  }
-
   async getLastUpdate() {
     const db = await this.mongoClient.connectToDatabase();
     const result = await db

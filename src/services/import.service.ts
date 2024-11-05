@@ -44,12 +44,8 @@ export class ImportService {
   private async resolveStreamFilename(stream: Readable, filenames: string[]) {
     await new Promise<void>((resolve) => {
       stream.on("data", (data) => {
-        filenames.push(
-          ...data
-            .toString()
-            .split("\n")
-            .filter((el: string) => el.length > 1)
-        );
+        const newData = this.sanitizeData(data.toString());
+        filenames.push(...newData);
       });
 
       stream.on("end", () => {

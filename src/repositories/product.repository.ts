@@ -9,10 +9,6 @@ export class ProductRepository {
 
   private COLLECTION_NAME = "products";
 
-  async disconnectDatabase(client: MongoDatabase) {
-    await client.disconnect();
-  }
-
   async findAll(pagination: { page: number; limit: number }) {
     const db = await this.mongoClient.connectToDatabase();
 
